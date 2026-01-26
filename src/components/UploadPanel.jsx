@@ -4,35 +4,28 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface UploadPanelProps {
-  onFileSelect: (file: File | null, type: "image" | "video") => void;
-  selectedFile: File | null;
-  fileType: "image" | "video" | null;
-  previewUrl: string | null;
-}
-
 export const UploadPanel = ({
   onFileSelect,
   selectedFile,
   fileType,
   previewUrl,
-}: UploadPanelProps) => {
+}) => {
   const [isDragOver, setIsDragOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e) => {
     e.preventDefault();
     setIsDragOver(true);
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e) => {
     e.preventDefault();
     setIsDragOver(false);
   }, []);
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e) => {
       e.preventDefault();
       setIsDragOver(false);
       const file = e.dataTransfer.files[0];
@@ -43,7 +36,7 @@ export const UploadPanel = ({
     [onFileSelect]
   );
 
-  const processFile = (file: File) => {
+  const processFile = (file) => {
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
 
@@ -54,7 +47,7 @@ export const UploadPanel = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       processFile(file);
