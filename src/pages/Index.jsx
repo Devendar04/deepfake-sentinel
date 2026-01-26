@@ -3,15 +3,8 @@ import { Header } from "@/components/Header";
 import { UploadPanel } from "@/components/UploadPanel";
 import { ResultPanel } from "@/components/ResultPanel";
 
-interface AnalysisResult {
-  verdict: "REAL" | "FAKE" | null;
-  confidence: number;
-  probability: number;
-  isAnalyzing: boolean;
-}
-
 // Mock detection functions (would connect to actual ML backend)
-const mockPredictImage = async (): Promise<{ verdict: "REAL" | "FAKE"; confidence: number; probability: number }> => {
+const mockPredictImage = async () => {
   await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 1000));
   const isFake = Math.random() > 0.5;
   const confidence = 70 + Math.random() * 25;
@@ -22,7 +15,7 @@ const mockPredictImage = async (): Promise<{ verdict: "REAL" | "FAKE"; confidenc
   };
 };
 
-const mockPredictVideo = async (): Promise<{ verdict: "REAL" | "FAKE"; confidence: number; probability: number }> => {
+const mockPredictVideo = async () => {
   await new Promise((resolve) => setTimeout(resolve, 3000 + Math.random() * 2000));
   const isFake = Math.random() > 0.5;
   const confidence = 65 + Math.random() * 30;
@@ -34,17 +27,17 @@ const mockPredictVideo = async (): Promise<{ verdict: "REAL" | "FAKE"; confidenc
 };
 
 const Index = () => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileType, setFileType] = useState<"image" | "video" | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [result, setResult] = useState<AnalysisResult>({
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileType, setFileType] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [result, setResult] = useState({
     verdict: null,
     confidence: 0,
     probability: 0,
     isAnalyzing: false,
   });
 
-  const handleFileSelect = useCallback((file: File | null, type: "image" | "video") => {
+  const handleFileSelect = useCallback((file, type) => {
     if (file) {
       setSelectedFile(file);
       setFileType(type);

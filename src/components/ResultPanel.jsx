@@ -3,20 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface AnalysisResult {
-  verdict: "REAL" | "FAKE" | null;
-  confidence: number;
-  probability: number;
-  isAnalyzing: boolean;
-}
-
-interface ResultPanelProps {
-  result: AnalysisResult;
-  hasFile: boolean;
-  onAnalyze: () => void;
-}
-
-export const ResultPanel = ({ result, hasFile, onAnalyze }: ResultPanelProps) => {
+export const ResultPanel = ({ result, hasFile, onAnalyze }) => {
   const { verdict, confidence, probability, isAnalyzing } = result;
 
   const getVerdictColor = () => {
