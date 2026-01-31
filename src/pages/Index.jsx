@@ -1,32 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { UploadPanel } from "@/components/UploadPanel";
-import { ResultPanel } from "@/components/ResultPanel";
+import Header from "@/components/Header";
+import UploadPanel from "@/components/UploadPanel";
+import ResultPanel from "@/components/ResultPanel";
+import WebcamPanel from "@/components/WebcamPanel";
 
-// Mock detection functions (would connect to actual ML backend)
-const mockPredictImage = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 1000));
-  const isFake = Math.random() > 0.5;
-  const confidence = 70 + Math.random() * 25;
-  return {
-    verdict: isFake ? "FAKE" : "REAL",
-    confidence,
-    probability: isFake ? confidence : 100 - confidence,
-  };
-};
+const API_BASE = "http://127.0.0.1:8000";
 
-const mockPredictVideo = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 3000 + Math.random() * 2000));
-  const isFake = Math.random() > 0.5;
-  const confidence = 65 + Math.random() * 30;
-  return {
-    verdict: isFake ? "FAKE" : "REAL",
-    confidence,
-    probability: isFake ? confidence : 100 - confidence,
-  };
-};
+export default function Index() {
+  const [mode, setMode] = useState("upload"); // upload | webcam
 
-const Index = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -36,91 +18,170 @@ const Index = () => {
     probability: 0,
     isAnalyzing: false,
   });
-
-  const handleFileSelect = useCallback((file, type) => {
-    if (file) {
-      setSelectedFile(file);
-      setFileType(type);
-      setPreviewUrl(URL.createObjectURL(file));
-      setResult({
-        verdict: null,
-        confidence: 0,
-        probability: 0,
-        isAnalyzing: false,
-      });
-    } else {
-      setSelectedFile(null);
-      setFileType(null);
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setPreviewUrl(null);
-      setResult({
-        verdict: null,
-        confidence: 0,
-        probability: 0,
-        isAnalyzing: false,
-      });
-    }
-  }, [previewUrl]);
-
-  const handleAnalyze = useCallback(async () => {
-    if (!selectedFile || !fileType) return;
-
-    setResult((prev) => ({ ...prev, isAnalyzing: true, verdict: null }));
-
-    try {
-      const prediction = fileType === "image" 
-        ? await mockPredictImage()
-        : await mockPredictVideo();
-
-      setResult({
-        verdict: prediction.verdict,
-        confidence: prediction.confidence,
-        probability: prediction.probability,
-        isAnalyzing: false,
-      });
-    } catch (error) {
-      console.error("Analysis failed:", error);
-      setResult((prev) => ({ ...prev, isAnalyzing: false }));
-    }
-  }, [selectedFile, fileType]);
-
-  // Cleanup preview URL on unmount
   useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+    setResult({
+      verdict: null,
+      confidence: 0,
+      probability: 0,
+      isAnalyzing: false,
+    });
+
+    setSelectedFile(null);
+    setFileType(null);
+
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  }, [mode]);
+  // Handle file select
+  const handleFileSelect = useCallback(
+    (file, type) => {
+      if (file) {
+        setSelectedFile(file);
+        setFileType(type);
+        setPreviewUrl(URL.createObjectURL(file));
+        setResult({
+          verdict: null,
+          confidence: 0,
+          probability: 0,
+          isAnalyzing: false,
+        });
+      } else {
+        setSelectedFile(null);
+        setFileType(null);
+        previewUrl && URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+        setResult({
+          verdict: null,
+          confidence: 0,
+          probability: 0,
+          isAnalyzing: false,
+        });
       }
-    };
+    },
+    [previewUrl],
+  );
+
+  // Predict image
+  const predictImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API_BASE}/predict/image`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Image prediction failed");
+    return await res.json();
+  };
+
+  // Predict video
+  const predictVideo = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API_BASE}/predict/video`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Video prediction failed");
+    return await res.json();
+  };
+
+  // Run analysis
+  const handleAnalyze = async () => {
+  if (!selectedFile || !fileType) return;
+
+  setResult((p) => ({ ...p, isAnalyzing: true, verdict: null }));
+
+  try {
+    const prediction =
+      fileType === "image"
+        ? await predictImage(selectedFile)
+        : await predictVideo(selectedFile);
+
+    setResult({
+      verdict: prediction.label, // ✅ FIXED
+      confidence: prediction.confidence,
+      probability:
+        prediction.label === "FAKE"
+          ? prediction.confidence
+          : 100 - prediction.confidence,
+      isAnalyzing: false,
+    });
+  } catch (err) {
+    console.error("Prediction error:", err);
+    alert("Prediction failed. Check backend server.");
+    setResult((p) => ({ ...p, isAnalyzing: false }));
+  }
+};
+
+  // Cleanup preview
+  useEffect(() => {
+    return () => previewUrl && URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-background dark">
+    <div className="min-h-screen bg-[#0E1116] text-white">
       <Header />
-      
-      <main className="flex-1 flex min-h-0">
-        {/* Left Panel - Upload */}
-        <div className="w-1/2 border-r border-border bg-card/30 min-h-0">
-          <UploadPanel
-            onFileSelect={handleFileSelect}
-            selectedFile={selectedFile}
-            fileType={fileType}
-            previewUrl={previewUrl}
-          />
+
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        {/* Mode Switch */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={() => setMode("upload")}
+            className={`px-5 py-2 rounded-xl font-medium transition ${
+              mode === "upload"
+                ? "bg-emerald-500 text-black"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            Upload Media
+          </button>
+
+          <button
+            onClick={() => setMode("webcam")}
+            className={`px-5 py-2 rounded-xl font-medium transition ${
+              mode === "webcam"
+                ? "bg-emerald-500 text-black"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            Live Webcam
+          </button>
         </div>
 
-        {/* Right Panel - Results */}
-        <div className="w-1/2 bg-card/30 min-h-0">
-          <ResultPanel
-            result={result}
-            hasFile={!!selectedFile}
-            onAnalyze={handleAnalyze}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-[#3f3f41]">
+          {/* LEFT PANEL */}
+          <div className="bg-[#24262b66] border-[#3f3f41] rounded-2xl p-8 shadow-2xl">
+
+            {mode === "upload" ? (
+              <UploadPanel
+                onFileSelect={handleFileSelect}
+                selectedFile={selectedFile}
+                previewUrl={previewUrl}
+                fileType={fileType}
+              />
+            ) : (
+              <WebcamPanel setResult={setResult} active={mode === "webcam"} />
+
+            )}
+          </div>
+
+          {/* RIGHT PANEL */}
+         <div className="bg-[#24262b66]  border-[#3f3f41] rounded-2xl p-8 shadow-2xl">
+            <ResultPanel
+              result={result}
+              hasFile={!!selectedFile || mode === "webcam"}
+              onAnalyze={mode === "upload" ? handleAnalyze : null}
+              hideAnalyzeButton={mode === "webcam"}
+            />
+          </div>
         </div>
       </main>
     </div>
   );
-};
-
-export default Index;
+}

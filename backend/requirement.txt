@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+
+numpy<2
+opencv-python
+pillow
+
+torch>=2.0
+torchvision
+timm
+facenet-pytorch
+
+tensorflow>=2.13
+
+python-multipart
