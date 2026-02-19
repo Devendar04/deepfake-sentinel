@@ -22,6 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-*.pth
-*.h5
+backend/*.pth
+backend/*.h5
+
 .venv
