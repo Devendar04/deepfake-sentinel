@@ -25,4 +25,4 @@ dist-ssr
 backend/*.pth
 backend/*.h5
 
-.venv
+backend/.venv
