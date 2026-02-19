@@ -1,6 +1,9 @@
 import os
 import cv2
 import torch
+
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import numpy as np
 import timm
 import torch.nn as nn

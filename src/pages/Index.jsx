@@ -16,6 +16,9 @@ export default function Index() {
     verdict: null,
     confidence: 0,
     probability: 0,
+    raw_score: 0,
+    threshold: 0,
+    model_used: "",
     isAnalyzing: false,
   });
   useEffect(() => {
@@ -36,32 +39,32 @@ export default function Index() {
   }, [mode]);
   // Handle file select
   const handleFileSelect = useCallback(
-    (file, type) => {
-      if (file) {
-        setSelectedFile(file);
-        setFileType(type);
-        setPreviewUrl(URL.createObjectURL(file));
-        setResult({
-          verdict: null,
-          confidence: 0,
-          probability: 0,
-          isAnalyzing: false,
-        });
-      } else {
-        setSelectedFile(null);
-        setFileType(null);
-        previewUrl && URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(null);
-        setResult({
-          verdict: null,
-          confidence: 0,
-          probability: 0,
-          isAnalyzing: false,
-        });
-      }
-    },
-    [previewUrl],
-  );
+  (file, type) => {
+    if (file) {
+      setSelectedFile(file);
+      setFileType(type);
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setSelectedFile(null);
+      setFileType(null);
+      previewUrl && URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+
+    // Reset result safely
+    setResult({
+      verdict: null,
+      confidence: 0,
+      probability: 0,
+      raw_score: 0,
+      threshold: 0,
+      model_used: "",
+      isAnalyzing: false,
+    });
+  },
+  [previewUrl]
+);
+
 
   // Predict image
   const predictImage = async (file) => {
@@ -92,7 +95,7 @@ export default function Index() {
   };
 
   // Run analysis
-  const handleAnalyze = async () => {
+ const handleAnalyze = async () => {
   if (!selectedFile || !fileType) return;
 
   setResult((p) => ({ ...p, isAnalyzing: true, verdict: null }));
@@ -103,21 +106,25 @@ export default function Index() {
         ? await predictImage(selectedFile)
         : await predictVideo(selectedFile);
 
+    console.log("API RESPONSE:", prediction); // debug
+
     setResult({
-      verdict: prediction.label, // ✅ FIXED
+      verdict: prediction.verdict,   // ✅ FIXED
       confidence: prediction.confidence,
-      probability:
-        prediction.label === "FAKE"
-          ? prediction.confidence
-          : 100 - prediction.confidence,
+      probability: prediction.probability,
+      raw_score: prediction.raw_score,
+      threshold: prediction.threshold,
+      model_used: prediction.model_used,
       isAnalyzing: false,
     });
+
   } catch (err) {
     console.error("Prediction error:", err);
     alert("Prediction failed. Check backend server.");
     setResult((p) => ({ ...p, isAnalyzing: false }));
   }
 };
+
 
   // Cleanup preview
   useEffect(() => {

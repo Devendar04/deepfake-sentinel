@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 *.pth
 *.h5
+.venv

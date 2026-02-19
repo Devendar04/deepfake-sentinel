@@ -38,12 +38,25 @@ def root():
 async def predict_image_api(file: UploadFile = File(...)):
     img = Image.open(file.file).convert("RGB")
 
-    label, prob = predict_image(img)
+    label, prob = predict_image(img)   # prob is 0–1 fake probability
+
+    fake_prob_percent = round(float(prob) * 100, 2)
+
+    # Confidence in predicted class
+    if label == "FAKE":
+        confidence_percent = fake_prob_percent
+    else:
+        confidence_percent = round(100 - fake_prob_percent, 2)
 
     return {
-        "label": label,
-        "confidence": round(prob * 100, 2)
+        "verdict": label,
+        "confidence": confidence_percent,   # confidence in verdict
+        "probability": fake_prob_percent,   # always fake probability
+        "raw_score": float(prob),           # 0–1 raw model output
+        "threshold": 0.5,
+        "model_used": "XceptionViT"
     }
+
 
 # ============================
 # VIDEO PREDICTION (UPLOAD + WEBCAM)
@@ -58,9 +71,14 @@ async def predict_video_api(file: UploadFile = File(...)):
         label, prob = predict_video(temp_name)
 
         return {
-            "label": label,
-            "confidence": round(prob * 100, 2)
+            "verdict": label,
+            "confidence": round(prob * 100, 2),
+            "probability": round(prob * 100, 2),
+            "raw_score": float(prob),
+            "threshold": 0.5,
+            "model_used": "XceptionViT",
         }
+
 
     finally:
         if os.path.exists(temp_name):
@@ -79,9 +97,14 @@ async def predict_webcam_api(file: UploadFile = File(...)):
         label, prob = predict_video(temp_name)
 
         return {
-            "label": label,
-            "confidence": round(prob * 100, 2)
+            "verdict": label,
+            "confidence": round(prob * 100, 2),
+            "probability": round(prob * 100, 2),
+            "raw_score": float(prob),
+            "threshold": 0.5,
+            "model_used": "XceptionViT",
         }
+
 
     finally:
         if os.path.exists(temp_name):
