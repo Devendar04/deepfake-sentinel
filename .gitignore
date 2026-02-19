@@ -26,3 +26,4 @@ backend/*.pth
 backend/*.h5
 
 backend/.venv
+backend/__pycache__
