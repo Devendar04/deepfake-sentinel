@@ -10,7 +10,6 @@ import torch.nn as nn
 from facenet_pytorch import MTCNN
 from PIL import Image
 import tensorflow as tf
-
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
