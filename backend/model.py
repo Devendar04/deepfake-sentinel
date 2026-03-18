@@ -15,9 +15,11 @@ os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMG_SIZE = 224
 FRAMES_PER_VIDEO = 5
-MODEL_PATH = "best_model.pth"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "best_model.pth")
+IMAGE_MODEL_PATH = os.path.join(BASE_DIR, "df_model.h5")
 
-image_model = tf.keras.models.load_model("df_model.h5")
+image_model = tf.keras.models.load_model(IMAGE_MODEL_PATH)
 
 mtcnn = MTCNN(
     image_size=IMG_SIZE,

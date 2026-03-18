@@ -6,7 +6,10 @@ import os
 import io
 
 # Import your ML functions
-from model import predict_video, predict_image
+try:
+    from .model import predict_video, predict_image
+except ImportError:
+    from model import predict_video, predict_image
 
 app = FastAPI()
 
@@ -63,6 +66,7 @@ async def predict_image_api(file: UploadFile = File(...)):
 # ============================
 @app.post("/predict/video")
 async def predict_video_api(file: UploadFile = File(...)):
+    temp_name = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
             temp_name = tmp.name
@@ -81,7 +85,7 @@ async def predict_video_api(file: UploadFile = File(...)):
 
 
     finally:
-        if os.path.exists(temp_name):
+        if temp_name and os.path.exists(temp_name):
             os.remove(temp_name)
 
 # ============================
@@ -89,6 +93,7 @@ async def predict_video_api(file: UploadFile = File(...)):
 # ============================
 @app.post("/predict/webcam")
 async def predict_webcam_api(file: UploadFile = File(...)):
+    temp_name = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
             temp_name = tmp.name
@@ -107,5 +112,5 @@ async def predict_webcam_api(file: UploadFile = File(...)):
 
 
     finally:
-        if os.path.exists(temp_name):
+        if temp_name and os.path.exists(temp_name):
             os.remove(temp_name)
