@@ -1,0 +1,6 @@
+# In your backend/ folder
+echo "3.11.4" > .python-version
+git add backend/.python-version
+git rm backend/pyproject.toml   # only if it exists
+git commit -m "pin python to 3.11.4 for render"
+git push
