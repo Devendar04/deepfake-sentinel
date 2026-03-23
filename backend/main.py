@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import tempfile
@@ -34,6 +34,7 @@ app.add_middleware(
 def root():
     return {"status": "Deepfake API running"}
 
+
 # ============================
 # IMAGE PREDICTION
 # ============================
@@ -62,7 +63,7 @@ async def predict_image_api(file: UploadFile = File(...)):
 
 
 # ============================
-# VIDEO PREDICTION (UPLOAD + WEBCAM)
+# VIDEO PREDICTION (UPLOAD)
 # ============================
 @app.post("/predict/video")
 async def predict_video_api(file: UploadFile = File(...)):
@@ -74,19 +75,27 @@ async def predict_video_api(file: UploadFile = File(...)):
 
         label, prob = predict_video(temp_name)
 
+        # ✅ FIX: was returning raw prob as confidence for both verdicts.
+        # Confidence should reflect certainty in the predicted class, not raw fake probability.
+        if label == "ERROR":
+            raise HTTPException(status_code=500, detail="Could not extract frames from video")
+
+        fake_prob_percent = round(float(prob) * 100, 2)
+        confidence_percent = fake_prob_percent if label == "FAKE" else round(100 - fake_prob_percent, 2)
+
         return {
             "verdict": label,
-            "confidence": round(prob * 100, 2),
-            "probability": round(prob * 100, 2),
+            "confidence": confidence_percent,
+            "probability": fake_prob_percent,
             "raw_score": float(prob),
             "threshold": 0.5,
             "model_used": "XceptionViT",
         }
 
-
     finally:
         if temp_name and os.path.exists(temp_name):
             os.remove(temp_name)
+
 
 # ============================
 # WEBCAM VIDEO (5 sec capture)
@@ -95,21 +104,28 @@ async def predict_video_api(file: UploadFile = File(...)):
 async def predict_webcam_api(file: UploadFile = File(...)):
     temp_name = None
     try:
+        # ✅ Keep .webm suffix so the file is handled correctly by OpenCV
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
             temp_name = tmp.name
             tmp.write(await file.read())
 
         label, prob = predict_video(temp_name)
 
+        # ✅ FIX: same confidence fix as /predict/video
+        if label == "ERROR":
+            raise HTTPException(status_code=500, detail="Could not extract frames from webcam video")
+
+        fake_prob_percent = round(float(prob) * 100, 2)
+        confidence_percent = fake_prob_percent if label == "FAKE" else round(100 - fake_prob_percent, 2)
+
         return {
             "verdict": label,
-            "confidence": round(prob * 100, 2),
-            "probability": round(prob * 100, 2),
+            "confidence": confidence_percent,
+            "probability": fake_prob_percent,
             "raw_score": float(prob),
             "threshold": 0.5,
             "model_used": "XceptionViT",
         }
-
 
     finally:
         if temp_name and os.path.exists(temp_name):

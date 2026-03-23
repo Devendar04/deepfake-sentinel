@@ -2,9 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body,
-#root {
-  height: 100%;
-  background: #020617;
+/* ── Fonts ─────────────────────────────────────────────── */
+:root {
+  --font-display: "Syne", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --green: #10b981;
+  --green-glow: rgba(16, 185, 129, 0.15);
+  --red-glow: rgba(239, 68, 68, 0.15);
+  --bg: #0b0d11;
+  --surface: #12151b;
+  --border: #1f2330;
 }
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+}
+
+/* ── Grid background ────────────────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Corner brackets on panels ──────────────────────────── */
+.bracket-panel {
+  position: relative;
+}
+.bracket-panel::before,
+.bracket-panel::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #10b981;
+  border-style: solid;
+  opacity: 0.5;
+}
+.bracket-panel::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+  border-radius: 2px 0 0 0;
+}
+.bracket-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 2px 0;
+}
+
+/* ── Animations ─────────────────────────────────────────── */
+@keyframes scanDown {
+  0%   { top: 0%; opacity: 0.7; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes verdictReveal {
+  0%   { opacity: 0; transform: scale(0.92) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+@keyframes fadePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Animation utility classes ──────────────────────────── */
+.animate-scan-down    { animation: scanDown 2s linear infinite; }
+.animate-fade-slide   { animation: fadeSlideUp 0.45s ease-out forwards; }
+.animate-fade-in      { animation: fadeIn 0.6s ease-out forwards; }
+.animate-verdict      { animation: verdictReveal 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-pulse-red    { animation: pulseRed 1.5s ease-in-out infinite; }
+.animate-fade-pulse   { animation: fadePulse 2.5s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(16,185,129,0.12) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Font utility classes ───────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }

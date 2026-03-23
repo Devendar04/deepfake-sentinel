@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
-
+huggingface_hub
 numpy<2
 opencv-python
 pillow
