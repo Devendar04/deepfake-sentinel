@@ -23,15 +23,17 @@ BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
 print("Loading models from Hugging Face...")
 
 MODEL_PATH = hf_hub_download(
-    repo_id=HF_REPO_ID,
+    repo_id="Devendra174/deepfake-detection-xception-vit",
     filename="best_model.pth",
-    local_dir=BASE_DIR
+    local_dir=BASE_DIR,
+    token=os.environ.get("HUGGING_FACE_HUB_TOKEN")
 )
 
 IMAGE_MODEL_PATH = hf_hub_download(
-    repo_id=HF_REPO_ID,
+    repo_id="Devendra174/deepfake-detection-xception-vit",
     filename="df_model.h5",
-    local_dir=BASE_DIR
+    local_dir=BASE_DIR,
+    token=os.environ.get("HUGGING_FACE_HUB_TOKEN")
 )
 
 print(f"  best_model.pth  -> {MODEL_PATH}")
