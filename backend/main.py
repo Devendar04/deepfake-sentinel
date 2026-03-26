@@ -11,16 +11,16 @@ predict_image_fn = None
 predict_video_fn = None
 
 
+import time
+
 def load_models_background():
-    """Downloads models from HuggingFace and loads them.
-    Runs in a background thread so the server port binds immediately."""
-    global predict_image_fn, predict_video_fn
+    start = time.time()
+    print("Downloading models from HuggingFace...")
+
     try:
-        print("Downloading models from HuggingFace...")
         from model import predict_image, predict_video
-        predict_image_fn = predict_image
-        predict_video_fn = predict_video
-        print("Models ready.")
+        ...
+        print(f"Models ready in {time.time() - start:.2f}s")
     except Exception as e:
         print(f"ERROR loading models: {e}")
 
