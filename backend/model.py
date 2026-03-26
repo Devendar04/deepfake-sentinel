@@ -21,23 +21,12 @@ BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "best_model.pth")
 IMAGE_MODEL_PATH = os.path.join(BASE_DIR, "df_model.h5")
 
-# Download only if missing
+# HARD FAIL if missing (important)
 if not os.path.exists(MODEL_PATH):
-    from huggingface_hub import hf_hub_download
-    MODEL_PATH = hf_hub_download(
-        repo_id=HF_REPO_ID,
-        filename="best_model.pth",
-        local_dir=BASE_DIR
-    )
+    raise RuntimeError("best_model.pth not found in backend folder")
 
 if not os.path.exists(IMAGE_MODEL_PATH):
-    from huggingface_hub import hf_hub_download
-    IMAGE_MODEL_PATH = hf_hub_download(
-        repo_id=HF_REPO_ID,
-        filename="df_model.h5",
-        local_dir=BASE_DIR
-    )
-
+    raise RuntimeError("df_model.h5 not found in backend folder")
 print(f"  best_model.pth  -> {MODEL_PATH}")
 print(f"  df_model.h5     -> {IMAGE_MODEL_PATH}")
 
