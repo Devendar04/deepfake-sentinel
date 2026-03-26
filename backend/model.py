@@ -18,23 +18,25 @@ IMG_SIZE         = 224
 FRAMES_PER_VIDEO = 5
 HF_REPO_ID       = "Devendra174/deepfake-detection-xception-vit"
 BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "best_model.pth")
+IMAGE_MODEL_PATH = os.path.join(BASE_DIR, "df_model.h5")
 
-# ── Download models from Hugging Face (cached after first download) ─
-print("Loading models from Hugging Face...")
+# Download only if missing
+if not os.path.exists(MODEL_PATH):
+    from huggingface_hub import hf_hub_download
+    MODEL_PATH = hf_hub_download(
+        repo_id=HF_REPO_ID,
+        filename="best_model.pth",
+        local_dir=BASE_DIR
+    )
 
-MODEL_PATH = hf_hub_download(
-    repo_id="Devendra174/deepfake-detection-xception-vit",
-    filename="best_model.pth",
-    local_dir=BASE_DIR,
-    token=os.environ.get("HUGGING_FACE_HUB_TOKEN")
-)
-
-IMAGE_MODEL_PATH = hf_hub_download(
-    repo_id="Devendra174/deepfake-detection-xception-vit",
-    filename="df_model.h5",
-    local_dir=BASE_DIR,
-    token=os.environ.get("HUGGING_FACE_HUB_TOKEN")
-)
+if not os.path.exists(IMAGE_MODEL_PATH):
+    from huggingface_hub import hf_hub_download
+    IMAGE_MODEL_PATH = hf_hub_download(
+        repo_id=HF_REPO_ID,
+        filename="df_model.h5",
+        local_dir=BASE_DIR
+    )
 
 print(f"  best_model.pth  -> {MODEL_PATH}")
 print(f"  df_model.h5     -> {IMAGE_MODEL_PATH}")
