@@ -5,9 +5,10 @@ services:
     rootDir: backend
     buildCommand: |
       pip install -r requirement.txt
-      python -c "from huggingface_hub import hf_hub_download; \
-    hf_hub_download(repo_id='Devendra174/deepfake-detection-xception-vit', filename='best_model.pth'); \
-    hf_hub_download(repo_id='Devendra174/deepfake-detection-xception-vit', filename='df_model.h5')"
+      python -c "from huggingface_hub import hf_hub_download; import os; \
+    BASE_DIR='.'; \
+    hf_hub_download(repo_id='Devendra174/deepfake-detection-xception-vit', filename='best_model.pth', local_dir=BASE_DIR); \
+    hf_hub_download(repo_id='Devendra174/deepfake-detection-xception-vit', filename='df_model.h5', local_dir=BASE_DIR)"
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
