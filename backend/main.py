@@ -5,21 +5,21 @@ from PIL import Image
 import tempfile
 import os
 import threading
+import time
 
 # ── Global model functions (set after background load) ────────────
 predict_image_fn = None
 predict_video_fn = None
 
 
-import time
-
 def load_models_background():
+    global predict_image_fn, predict_video_fn   # ✅ FIX: declare globals
     start = time.time()
-    print("Downloading models from HuggingFace...")
-
+    print("Loading models...")
     try:
         from model import predict_image, predict_video
-        ...
+        predict_image_fn = predict_image          # ✅ FIX: actually assign
+        predict_video_fn = predict_video          # ✅ FIX: actually assign
         print(f"Models ready in {time.time() - start:.2f}s")
     except Exception as e:
         print(f"ERROR loading models: {e}")
@@ -27,10 +27,9 @@ def load_models_background():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Kick off model loading in background — port binds immediately
     t = threading.Thread(target=load_models_background, daemon=True)
     t.start()
-    yield  # server is live here, models load in background
+    yield
 
 
 # ── App ───────────────────────────────────────────────────────────
@@ -63,10 +62,7 @@ def root():
 @app.post("/predict/image")
 async def predict_image_api(file: UploadFile = File(...)):
     if predict_image_fn is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Models still loading, please try again in a moment."
-        )
+        raise HTTPException(status_code=503, detail="Models still loading, please try again in a moment.")
 
     img = Image.open(file.file).convert("RGB")
     label, prob = predict_image_fn(img)
@@ -88,10 +84,7 @@ async def predict_image_api(file: UploadFile = File(...)):
 @app.post("/predict/video")
 async def predict_video_api(file: UploadFile = File(...)):
     if predict_video_fn is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Models still loading, please try again in a moment."
-        )
+        raise HTTPException(status_code=503, detail="Models still loading, please try again in a moment.")
 
     temp_name = None
     try:
@@ -124,10 +117,7 @@ async def predict_video_api(file: UploadFile = File(...)):
 @app.post("/predict/webcam")
 async def predict_webcam_api(file: UploadFile = File(...)):
     if predict_video_fn is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Models still loading, please try again in a moment."
-        )
+        raise HTTPException(status_code=503, detail="Models still loading, please try again in a moment.")
 
     temp_name = None
     try:
