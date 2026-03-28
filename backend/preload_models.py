@@ -1,22 +1,13 @@
 from huggingface_hub import hf_hub_download
 import os
 
-# Save models next to model.py, not wherever the build runs from
 DEST = os.path.dirname(os.path.abspath(__file__))
+REPO = "Devendra174/deepfake-detection-xception-vit"
 
-print("Downloading models...")
+print("Downloading best_model.pth (285 MB)...")
+hf_hub_download(repo_id=REPO, filename="best_model.pth", local_dir=DEST)
 
-hf_hub_download(
-    repo_id="Devendra174/deepfake-detection-xception-vit",
-    filename="best_model.pth",
-    local_dir=DEST
-)
+print("Downloading df_model.h5 (134 MB)...")
+hf_hub_download(repo_id=REPO, filename="df_model.h5", local_dir=DEST)
 
-hf_hub_download(
-    repo_id="Devendra174/deepfake-detection-xception-vit",
-    filename="df_model.h5",
-    local_dir=DEST
-)
-
-print(f"Models saved to: {DEST}")
-print("Done.")
+print("Done. Both models saved to:", DEST)
