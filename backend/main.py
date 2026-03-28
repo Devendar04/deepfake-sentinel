@@ -3,13 +3,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import tempfile, os
 
-try:
-    from model import predict_image, predict_video
-    MODELS_READY = True
-    print("Models loaded.")
-except Exception as e:
-    MODELS_READY = False
-    print(f"ERROR: {e}")
+# ── Lazy load — imported on first request, not at startup ─────────
+_predict_image = None
+_predict_video = None
+
+def get_models():
+    global _predict_image, _predict_video
+    if _predict_image is None:
+        from model import predict_image, predict_video
+        _predict_image = predict_image
+        _predict_video = predict_video
+    return _predict_image, _predict_video
 
 app = FastAPI()
 
@@ -27,12 +31,11 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"status": "Deepfake API running", "models_ready": MODELS_READY}
+    return {"status": "Deepfake API running"}
 
 @app.post("/predict/image")
 async def predict_image_api(file: UploadFile = File(...)):
-    if not MODELS_READY:
-        raise HTTPException(status_code=503, detail="Models failed to load.")
+    predict_image, _ = get_models()
     img = Image.open(file.file).convert("RGB")
     label, prob = predict_image(img)
     fake_pct = round(float(prob) * 100, 2)
@@ -42,8 +45,7 @@ async def predict_image_api(file: UploadFile = File(...)):
 
 @app.post("/predict/video")
 async def predict_video_api(file: UploadFile = File(...)):
-    if not MODELS_READY:
-        raise HTTPException(status_code=503, detail="Models failed to load.")
+    _, predict_video = get_models()
     temp_name = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
@@ -62,8 +64,7 @@ async def predict_video_api(file: UploadFile = File(...)):
 
 @app.post("/predict/webcam")
 async def predict_webcam_api(file: UploadFile = File(...)):
-    if not MODELS_READY:
-        raise HTTPException(status_code=503, detail="Models failed to load.")
+    _, predict_video = get_models()
     temp_name = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
